@@ -30,16 +30,22 @@ export const auth = (email, password) => {
       password: password,
       returnSecureToken: true,
     };
+    console.log(authData);
 
     axios
       .post(
         `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`,
-        authData,
         {
           headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods":
+              "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Origin, Content-Type, X-Auth-Token",
             "Content-Type": "application/json",
           },
-        }
+        },
+        authData
       )
       .then((res) => {
         console.log(res);

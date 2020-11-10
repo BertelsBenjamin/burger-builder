@@ -88,7 +88,11 @@ class Auth extends Component {
 
   submitHandler = (event) => {
     event.preventDefault();
-    this.props.onAuth(event.target.email, event.target.password);
+    console.log(event);
+    this.props.onAuth(
+      this.state.controls.email.value,
+      this.state.controls.password.value
+    );
   };
 
   render() {
@@ -115,7 +119,7 @@ class Auth extends Component {
 
     return (
       <div className={classes.Auth}>
-        <form onSubmit={this.submitHandler}>
+        <form onSubmit={(event) => this.submitHandler(event)}>
           {form}
           <Button btnType="Success">SUBMIT</Button>
         </form>
