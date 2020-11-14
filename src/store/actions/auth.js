@@ -7,10 +7,11 @@ export const authStart = () => {
   };
 };
 
-export const authSuccess = (authData) => {
+export const authSuccess = (token, userId) => {
   return {
     type: actionTypes.AUTH_SUCCESS,
-    authData: authData,
+    idToken: token,
+    userId: userId,
   };
 };
 
@@ -21,7 +22,19 @@ export const authFail = (error) => {
   };
 };
 
-export const auth = (email, password) => {
+export const logout = () => {
+  return {
+    type: actionTypes.AUTH_LOGOUT,
+  };
+};
+
+export const checkAuthTimeout = (expirationTime) => {
+  return (dispatch) => {
+    setTimeout(() => dispatch(logout()), expirationTime * 1000);
+  };
+};
+
+export const auth = (email, password, isSignedUp) => {
   return (dispatch) => {
     dispatch(authStart());
     const API_KEY = "AIzaSyAjwM0I4i4WXXo0etpDez3Msz9PPOPvmQ8";
@@ -30,38 +43,24 @@ export const auth = (email, password) => {
       password: password,
       returnSecureToken: true,
     };
-    console.log(authData);
-
-    axios
-      .post(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`,
-        {
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods":
-              "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers":
-              "Origin, Content-Type, X-Auth-Token",
-            "Content-Type": "application/json",
-          },
-        },
-        authData
-      )
+    let url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
+    if (!isSignedUp) {
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
+    }
+    axios({
+      method: "POST",
+      url: `${url}${API_KEY}`,
+      data: authData,
+    })
       .then((res) => {
         console.log(res);
-        dispatch(authSuccess(res.data));
+        dispatch(authSuccess(res.data.idToken, res.data.localId));
+        dispatch(checkAuthTimeout(res.data.expiresIn));
       })
       .catch((error) => {
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          console.log(error.response.data);
-        } else if (error.request) {
-          console.log(error.request);
-        } else {
-          console.log("Error", error.message);
-        }
-        dispatch(authFail(error));
+        console.log(error);
+        dispatch(authFail(error.response.data.error));
       });
   };
 };
